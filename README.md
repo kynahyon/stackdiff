@@ -21,6 +21,9 @@ stackdiff --from package-lock.json --to package-lock.json.bak
 
 # Output diff as JSON
 stackdiff --format json
+
+# Filter to only show packages matching a pattern
+stackdiff --filter express
 ```
 
 **Example output:**
@@ -42,6 +45,7 @@ stackdiff --format json
 | `--to <file>` | Path to the target lockfile |
 | `--format` | Output format: `pretty` (default) or `json` |
 | `--depth` | Limit to top-level dependencies only (`--depth 1`) |
+| `--filter <pattern>` | Only show packages whose name matches the given string or regex |
 
 ## Requirements
 
