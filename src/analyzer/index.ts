@@ -4,3 +4,6 @@ export * from './trends';
 export * from './outdated';
 export * from './changelog';
 export * from './duplicates';
+export * from './license';
+export * from './score';
+export * from './graph';
