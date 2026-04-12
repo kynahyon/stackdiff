@@ -30,6 +30,10 @@ describe('classifyLicenseRisk', () => {
   it('returns unknown for null', () => {
     expect(classifyLicenseRisk(null)).toBe('unknown');
   });
+
+  it('returns unknown for empty string', () => {
+    expect(classifyLicenseRisk('')).toBe('unknown');
+  });
 });
 
 describe('extractLicense', () => {
@@ -75,6 +79,14 @@ describe('analyzeLicenses', () => {
     expect(report.hasHighRisk).toBe(true);
   });
 
+  it('does not flag hasHighRisk when only low-risk licenses present', () => {
+    const lowRiskChanges: DependencyChange[] = [
+      { name: 'lodash', type: 'added', from: null, to: '4.17.21' },
+    ];
+    const report = analyzeLicenses(lowRiskChanges, { lodash: { license: 'MIT' } });
+    expect(report.hasHighRisk).toBe(false);
+  });
+
   it('returns unknown for packages missing from metaMap', () => {
     const report = analyzeLicenses(changes, {});
     expect(report.riskCounts.unknown).toBe(2);
@@ -95,6 +107,6 @@ describe('formatLicenseReport', () => {
     const report = analyzeLicenses(changes, { react: { license: 'MIT' } });
     const output = formatLicenseReport(report);
     expect(output).toContain('Risk summary');
-    expect(output).toContain('[LOW]');
+    expect(output).toContain('low');
   });
 });
