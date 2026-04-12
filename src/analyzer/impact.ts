@@ -79,6 +79,18 @@ export function summarizeImpact(analyses: ImpactAnalysis[]): ImpactSummary {
   };
 }
 
+/**
+ * Filter impact analyses to only those at or above the given severity level.
+ * Useful for surfacing only high-priority changes in reports.
+ *
+ * Severity order (highest to lowest): breaking > major > minor > patch > none
+ */
+export function filterByMinimumImpact(analyses: ImpactAnalysis[], minimum: ImpactLevel): ImpactAnalysis[] {
+  const order: ImpactLevel[] = ['none', 'patch', 'minor', 'major', 'breaking'];
+  const minIndex = order.indexOf(minimum);
+  return analyses.filter(a => order.indexOf(a.level) >= minIndex);
+}
+
 function determineSemverChange(oldVersion: string, newVersion: string): 'major' | 'minor' | 'patch' | 'unknown' {
   const oldParts = parseVersion(oldVersion);
   const newParts = parseVersion(newVersion);
