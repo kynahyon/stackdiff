@@ -11,6 +11,20 @@ export interface RunResult {
   error?: string;
 }
 
+/**
+ * Reads a file from disk, returning its content or a RunResult error on failure.
+ */
+function readFile(filePath: string): { content: string } | RunResult {
+  if (!fs.existsSync(filePath)) {
+    return { success: false, error: `File not found: ${filePath}` };
+  }
+  try {
+    return { content: fs.readFileSync(filePath, 'utf-8') };
+  } catch (err: any) {
+    return { success: false, error: `Failed to read file: ${err.message}` };
+  }
+}
+
 export async function run(argv: string[]): Promise<RunResult> {
   let args;
   try {
@@ -22,21 +36,14 @@ export async function run(argv: string[]): Promise<RunResult> {
   const fromPath = path.resolve(args.from);
   const toPath = path.resolve(args.to);
 
-  if (!fs.existsSync(fromPath)) {
-    return { success: false, error: `File not found: ${fromPath}` };
-  }
-  if (!fs.existsSync(toPath)) {
-    return { success: false, error: `File not found: ${toPath}` };
-  }
+  const fromResult = readFile(fromPath);
+  if ('error' in fromResult) return fromResult as RunResult;
 
-  let fromContent: string;
-  let toContent: string;
-  try {
-    fromContent = fs.readFileSync(fromPath, 'utf-8');
-    toContent = fs.readFileSync(toPath, 'utf-8');
-  } catch (err: any) {
-    return { success: false, error: `Failed to read file: ${err.message}` };
-  }
+  const toResult = readFile(toPath);
+  if ('error' in toResult) return toResult as RunResult;
+
+  const fromContent = (fromResult as { content: string }).content;
+  const toContent = (toResult as { content: string }).content;
 
   let fromDeps;
   let toDeps;
