@@ -30,6 +30,23 @@ export function buildChangelogEntry(
   };
 }
 
+/**
+ * Determines the semver change type between two version strings.
+ * Returns 'major' if the major version increased, 'minor' if the minor
+ * version increased, or 'patch' otherwise.
+ */
+function classifyVersionChange(
+  from: string,
+  to: string
+): 'major' | 'minor' | 'patch' {
+  const [fromMajor, fromMinor] = from.split('.').map(Number);
+  const [toMajor, toMinor] = to.split('.').map(Number);
+
+  if (toMajor > fromMajor) return 'major';
+  if (toMinor > fromMinor) return 'minor';
+  return 'patch';
+}
+
 export function generateChangelog(diff: DiffResult): ChangelogReport {
   const entries: ChangelogEntry[] = [];
 
@@ -42,20 +59,7 @@ export function generateChangelog(diff: DiffResult): ChangelogReport {
   }
 
   for (const change of diff.updated) {
-    const [fromMajor] = change.from.split('.').map(Number);
-    const [toMajor] = change.to.split('.').map(Number);
-    const [, fromMinor] = change.from.split('.').map(Number);
-    const [, toMinor] = change.to.split('.').map(Number);
-
-    let type: ChangelogEntry['type'];
-    if (toMajor > fromMajor) {
-      type = 'major';
-    } else if (toMinor > fromMinor) {
-      type = 'minor';
-    } else {
-      type = 'patch';
-    }
-
+    const type = classifyVersionChange(change.from, change.to);
     entries.push(buildChangelogEntry(change.name, change.from, change.to, type));
   }
 
