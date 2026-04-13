@@ -20,33 +20,47 @@ export function parseWorkspaceArgs(argv: string[]): WorkspaceArgs {
   return { workspaceDirs, format };
 }
 
+function loadPackage(dir: string): WorkspacePackage | null {
+  const lockfilePath = path.join(dir, 'package-lock.json');
+  const pkgJsonPath = path.join(dir, 'package.json');
+
+  if (!fs.existsSync(lockfilePath)) {
+    console.warn(`Warning: No package-lock.json found in ${dir}, skipping.`);
+    return null;
+  }
+
+  let lockfileContent: string;
+  try {
+    lockfileContent = fs.readFileSync(lockfilePath, 'utf-8');
+  } catch (err) {
+    console.warn(`Warning: Could not read package-lock.json in ${dir}: ${(err as Error).message}`);
+    return null;
+  }
+
+  const pkgJsonContent = fs.existsSync(pkgJsonPath)
+    ? JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'))
+    : {};
+
+  const lockfile = parseLockfile(lockfileContent);
+  const dependencies = extractDependencies(lockfile);
+
+  return {
+    name: pkgJsonContent.name || path.basename(dir),
+    version: pkgJsonContent.version || '0.0.0',
+    path: dir,
+    dependencies,
+  };
+}
+
 export async function runWorkspaceCommand(argv: string[]): Promise<void> {
   const args = parseWorkspaceArgs(argv);
   const packages: WorkspacePackage[] = [];
 
   for (const dir of args.workspaceDirs) {
-    const lockfilePath = path.join(dir, 'package-lock.json');
-    const pkgJsonPath = path.join(dir, 'package.json');
-
-    if (!fs.existsSync(lockfilePath)) {
-      console.warn(`Warning: No package-lock.json found in ${dir}, skipping.`);
-      continue;
+    const pkg = loadPackage(dir);
+    if (pkg) {
+      packages.push(pkg);
     }
-
-    const lockfileContent = fs.readFileSync(lockfilePath, 'utf-8');
-    const pkgJsonContent = fs.existsSync(pkgJsonPath)
-      ? JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'))
-      : {};
-
-    const lockfile = parseLockfile(lockfileContent);
-    const dependencies = extractDependencies(lockfile);
-
-    packages.push({
-      name: pkgJsonContent.name || path.basename(dir),
-      version: pkgJsonContent.version || '0.0.0',
-      path: dir,
-      dependencies,
-    });
   }
 
   const analysis = analyzeWorkspace(packages);
