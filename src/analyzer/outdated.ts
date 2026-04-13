@@ -14,6 +14,10 @@ export interface OutdatedReport {
   items: OutdatedInfo[];
 }
 
+/**
+ * Classifies the severity of an outdated dependency by comparing semver components.
+ * Returns 'unknown' if either version string cannot be parsed as a valid semver.
+ */
 export function classifyOutdated(
   name: string,
   current: string,
@@ -23,6 +27,7 @@ export function classifyOutdated(
   const latestParts = latest.replace(/^[^\d]*/, '').split('.').map(Number);
 
   if (currentParts.length < 3 || latestParts.length < 3) return 'unknown';
+  if (currentParts.some(isNaN) || latestParts.some(isNaN)) return 'unknown';
 
   const [curMajor, curMinor] = currentParts;
   const [latMajor, latMinor] = latestParts;
