@@ -39,6 +39,18 @@ export function parseSnapshotArgs(argv: string[]): SnapshotArgs {
   return args;
 }
 
+/**
+ * Loads a snapshot by label and exits with an error message if it is not found.
+ */
+function loadSnapshotOrExit(label: string, storePath: string) {
+  const snap = loadSnapshot(label, storePath);
+  if (!snap) {
+    console.error(`Error: snapshot "${label}" not found in ${storePath}`);
+    process.exit(1);
+  }
+  return snap;
+}
+
 export async function runSnapshotCommand(args: SnapshotArgs): Promise<void> {
   const storePath = path.resolve(args.storePath);
 
@@ -67,12 +79,8 @@ export async function runSnapshotCommand(args: SnapshotArgs): Promise<void> {
       console.error('Error: --label and --compare are required for diff');
       process.exit(1);
     }
-    const snapA = loadSnapshot(args.label, storePath);
-    const snapB = loadSnapshot(args.compareLabel, storePath);
-    if (!snapA || !snapB) {
-      console.error('Error: one or both snapshots not found');
-      process.exit(1);
-    }
+    const snapA = loadSnapshotOrExit(args.label, storePath);
+    const snapB = loadSnapshotOrExit(args.compareLabel, storePath);
     const diff = compareDependencies(snapA.dependencies, snapB.dependencies);
     const summary = summarizeDiff(diff);
     console.log(formatOutput({ diff, summary }, args.format));
