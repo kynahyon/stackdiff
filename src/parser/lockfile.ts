@@ -83,3 +83,17 @@ export function groupDependencies(deps: ParsedDependency[]): {
     dev: deps.filter((d) => d.dev),
   };
 }
+
+/**
+ * Finds a single dependency by name from a list of parsed dependencies.
+ *
+ * @param deps - The flat list returned by `extractDependencies`.
+ * @param name - The package name to look up.
+ * @returns The matching `ParsedDependency`, or `undefined` if not found.
+ */
+export function findDependency(
+  deps: ParsedDependency[],
+  name: string
+): ParsedDependency | undefined {
+  return deps.find((d) => d.name === name);
+}
