@@ -67,3 +67,19 @@ export function extractDependencies(lockfile: PackageLock): ParsedDependency[] {
 
   return deps;
 }
+
+/**
+ * Groups an array of parsed dependencies into production and dev buckets.
+ *
+ * @param deps - The flat list returned by `extractDependencies`.
+ * @returns An object with `prod` and `dev` arrays.
+ */
+export function groupDependencies(deps: ParsedDependency[]): {
+  prod: ParsedDependency[];
+  dev: ParsedDependency[];
+} {
+  return {
+    prod: deps.filter((d) => !d.dev),
+    dev: deps.filter((d) => d.dev),
+  };
+}
