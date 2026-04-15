@@ -46,6 +46,14 @@ describe('classifyPatchChange', () => {
       isMajor: false,
     });
   });
+
+  it('returns all false when versions are identical', () => {
+    expect(classifyPatchChange('1.2.3', '1.2.3')).toEqual({
+      isPatch: false,
+      isMinor: false,
+      isMajor: false,
+    });
+  });
 });
 
 describe('countPatchDistance', () => {
@@ -55,6 +63,10 @@ describe('countPatchDistance', () => {
 
   it('returns 0 for non-patch changes', () => {
     expect(countPatchDistance('1.0.0', '1.1.0')).toBe(0);
+  });
+
+  it('returns 0 for identical versions', () => {
+    expect(countPatchDistance('1.0.5', '1.0.5')).toBe(0);
   });
 });
 
@@ -82,6 +94,15 @@ describe('analyzePatchChanges', () => {
   it('ignores non-updated entries', () => {
     const result = analyzePatchChanges(diff);
     expect(result.patches.find((p) => p.name === 'chalk')).toBeUndefined();
+  });
+
+  it('returns empty result for an empty diff', () => {
+    const result = analyzePatchChanges([]);
+    expect(result.totalPatches).toBe(0);
+    expect(result.totalMinor).toBe(0);
+    expect(result.totalMajor).toBe(0);
+    expect(result.safeToAutoUpdate).toHaveLength(0);
+    expect(result.patches).toHaveLength(0);
   });
 });
 
