@@ -1,3 +1,9 @@
+/**
+ * Parser module for stackdiff.
+ * Provides utilities for parsing and extracting dependency information
+ * from package lock files.
+ */
+
 export {
   parseLockfile,
   extractDependencies,
