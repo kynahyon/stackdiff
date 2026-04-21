@@ -28,6 +28,10 @@ describe('classifyLifecycleRisk', () => {
   it('returns medium for postuninstall', () => {
     expect(classifyLifecycleRisk(['postuninstall'])).toBe('medium');
   });
+
+  it('returns high when mixed high and medium hooks are present', () => {
+    expect(classifyLifecycleRisk(['postuninstall', 'preinstall'])).toBe('high');
+  });
 });
 
 describe('extractLifecycleScripts', () => {
@@ -45,6 +49,11 @@ describe('extractLifecycleScripts', () => {
     const result = extractLifecycleScripts(scripts);
     expect(result).toContain('preinstall');
     expect(result).toContain('postinstall');
+  });
+
+  it('returns empty for scripts with no lifecycle hooks', () => {
+    const scripts = { build: 'tsc', test: 'jest', lint: 'eslint .' };
+    expect(extractLifecycleScripts(scripts)).toEqual([]);
   });
 });
 
@@ -71,6 +80,13 @@ describe('analyzeLifecycle', () => {
     ];
     const report = analyzeLifecycle(deps);
     expect(report.entries[0].name).toBe('pkg-b');
+  });
+
+  it('handles empty dependency list', () => {
+    const report = analyzeLifecycle([]);
+    expect(report.totalWithHooks).toBe(0);
+    expect(report.highRiskCount).toBe(0);
+    expect(report.entries).toEqual([]);
   });
 });
 
