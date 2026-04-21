@@ -52,6 +52,14 @@ export function analyzeSizes(
   return { entries, totalOldSize, totalNewSize, totalDelta };
 }
 
+/**
+ * Returns only entries where the package was added, removed, or changed size.
+ * Entries where both versions resolve to the same estimated size are excluded.
+ */
+export function filterChangedEntries(report: SizeReport): SizeEntry[] {
+  return report.entries.filter((e) => e.delta !== 0);
+}
+
 export function formatSizeReport(report: SizeReport): string {
   const fmt = (bytes: number) =>
     bytes >= 1024 ? `${(bytes / 1024).toFixed(1)} kB` : `${bytes} B`;
