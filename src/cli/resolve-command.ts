@@ -34,6 +34,24 @@ export function parseResolveArgs(argv: string[]): ResolveArgs {
 
 const LEVEL_RANK: Record<string, number> = { patch: 0, minor: 1, major: 2 };
 
+/**
+ * Loads and parses the resolutions map from a package.json-style file.
+ * Returns an empty object if no file path is provided.
+ */
+async function loadResolutions(resolutionsFile?: string): Promise<Record<string, string>> {
+  if (!resolutionsFile) {
+    return {};
+  }
+  try {
+    const raw = await readFile(resolutionsFile);
+    const pkg = JSON.parse(raw) as { resolutions?: Record<string, string> };
+    return pkg.resolutions ?? {};
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to load resolutions from "${resolutionsFile}": ${message}`);
+  }
+}
+
 export async function runResolveCommand(argv: string[]): Promise<void> {
   const args = parseResolveArgs(argv);
 
@@ -41,12 +59,7 @@ export async function runResolveCommand(argv: string[]): Promise<void> {
   const parsed = parseLockfile(lockfileContent);
   const deps = extractDependencies(parsed);
 
-  let resolutions: Record<string, string> = {};
-  if (args.resolutionsFile) {
-    const raw = await readFile(args.resolutionsFile);
-    const pkg = JSON.parse(raw) as { resolutions?: Record<string, string> };
-    resolutions = pkg.resolutions ?? {};
-  }
+  const resolutions = await loadResolutions(args.resolutionsFile);
 
   const report = analyzeResolutions(deps, resolutions);
 
