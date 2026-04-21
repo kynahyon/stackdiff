@@ -43,12 +43,29 @@ describe('parsePatchArgs', () => {
     const args = parsePatchArgs(['old.lock', 'new.lock']);
     expect(args.format).toBe('text');
   });
+
+  it('defaults patchOnly to false', () => {
+    const args = parsePatchArgs(['old.lock', 'new.lock']);
+    expect(args.patchOnly).toBe(false);
+  });
 });
 
 describe('runPatchCommand', () => {
   it('exits with error when files are missing', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
     expect(() => runPatchCommand({ oldFile: '', newFile: '', format: 'text', patchOnly: false })).toThrow();
+    mockExit.mockRestore();
+  });
+
+  it('exits with error when only oldFile is missing', () => {
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
+    expect(() => runPatchCommand({ oldFile: '', newFile: 'new.lock', format: 'text', patchOnly: false })).toThrow();
+    mockExit.mockRestore();
+  });
+
+  it('exits with error when only newFile is missing', () => {
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => { throw new Error('exit'); });
+    expect(() => runPatchCommand({ oldFile: 'old.lock', newFile: '', format: 'text', patchOnly: false })).toThrow();
     mockExit.mockRestore();
   });
 
